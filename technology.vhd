@@ -16,6 +16,11 @@ package technology is
     function sl(l: std_logic_vector; r: integer) return std_logic_vector;
 --	procedure inc(data : inout std_logic_vector);
     function "+"(op_l, op_r: std_logic_vector) return std_logic_vector;
+	function log2(inp : integer) return integer;
+	function size2bits(inp : integer) return integer;
+	function max(a : integer; b: integer) return integer;
+	function min(a : integer; b: integer) return integer;
+	function equ(a : std_logic_vector; b : integer) return boolean;
 
 	component d_ff is
 		port (  d  :  in STD_LOGIC;
@@ -49,6 +54,8 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 library exemplar;
 use exemplar.exemplar_1164.all;
+library synopsys;
+use synopsys.std_logic_arith.all;
 
 package body technology is
     function "+"(op_l, op_r: std_logic_vector) return std_logic_vector is
@@ -77,6 +84,69 @@ package body technology is
 --	begin
 --		data := addone(data);
 --	end;
+	function max(a : integer; b: integer) return integer is
+	begin
+	    if (a > b) then return a; end if;
+	    return b;
+	end;
+	
+	function min(a : integer; b: integer) return integer is
+	begin
+	    if (a < b) then return a; end if;
+	    return b;
+	end;
+	
+	function log2(inp : integer) return integer is
+	begin
+		if (inp < 1) then return 0; end if;
+		if (inp < 2) then return 0; end if;
+		if (inp < 4) then return 1; end if;
+		if (inp < 8) then return 2; end if;
+		if (inp < 16) then return 3; end if;
+		if (inp < 32) then return 4; end if;
+		if (inp < 64) then return 5; end if;
+		if (inp < 128) then return 6; end if;
+		if (inp < 256) then return 7; end if;
+		if (inp < 512) then return 8; end if;
+		if (inp < 1024) then return 9; end if;
+		if (inp < 2048) then return 10; end if;
+		if (inp < 4096) then return 11; end if;
+		if (inp < 8192) then return 12; end if;
+		if (inp < 16384) then return 13; end if;
+		if (inp < 32768) then return 14; end if;
+		if (inp < 65538) then return 15; end if;
+		return 16;
+	end;
+
+	function size2bits(inp : integer) return integer is
+	begin
+		if (inp < 1) then return 1; end if;
+		if (inp < 2) then return 1; end if;
+		if (inp < 4) then return 2; end if;
+		if (inp < 8) then return 3; end if;
+		if (inp < 16) then return 4; end if;
+		if (inp < 32) then return 5; end if;
+		if (inp < 64) then return 6; end if;
+		if (inp < 128) then return 7; end if;
+		if (inp < 256) then return 8; end if;
+		if (inp < 512) then return 9; end if;
+		if (inp < 1024) then return 10; end if;
+		if (inp < 2048) then return 11; end if;
+		if (inp < 4096) then return 12; end if;
+		if (inp < 8192) then return 13; end if;
+		if (inp < 16384) then return 14; end if;
+		if (inp < 32768) then return 15; end if;
+		if (inp < 65538) then return 16; end if;
+		return 17;
+	end;
+
+	function equ(a : std_logic_vector; b : integer) return boolean is
+		variable b_s : std_logic_vector(a'RANGE);
+	begin
+		b_s := CONV_STD_LOGIC_VECTOR(b,a'HIGH+1);
+		return (a = b_s);
+	end;
+
 end package body technology;
   
 
@@ -150,6 +220,165 @@ begin
 		);
 end altera;
 
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+library exemplar;
+use exemplar.exemplar_1164.all;
+
+library lpm;
+use lpm.all;
+
+entity ram is
+	generic (
+		data_width : positive;
+		addr_width : positive
+	);
+	port (
+		clk : in std_logic;
+		we : in std_logic;
+		addr : in std_logic_vector(addr_width-1 downto 0);
+		d_in : in std_logic_vector(data_width-1 downto 0);
+		d_out : out std_logic_vector(data_width-1 downto 0)
+	);
+end ram;
+
+architecture altera of ram is
+	component lpm_ram_dp
+		generic (
+			lpm_width: positive;
+			lpm_widthad: positive;
+			lpm_numwords: natural := 0;
+			lpm_type: string := "lpm_ram_dp";
+			lpm_indata: string := "REGISTERED";
+			lpm_outdata: string := "UNREGISTERED";
+			lpm_rdaddress_control: string := "REGISTERED";
+			lpm_wraddress_control: string := "REGISTERED";
+			lpm_file: string := "UNUSED";
+			lpm_hint: string := "UNUSED"
+		);
+		port (
+			rdaddress, wraddress: in std_logic_vector(lpm_widthad-1 downto 0);
+			rdclock, wrclock: in std_logic := '0';
+			rden, rdclken, wrclken: in std_logic := '1';
+			wren: in std_logic; 
+			data: in std_logic_vector(lpm_width-1 downto 0);
+			q: out std_logic_vector(lpm_width-1 downto 0)
+		);
+	end component;
+begin
+	altera_ram: lpm_ram_dp
+		generic map (
+			lpm_width => data_width,
+			lpm_widthad => addr_width,
+			lpm_numwords => 2 ** addr_width,
+			lpm_type => "lpm_ram_dp",
+			lpm_indata => "REGISTERED",
+			lpm_wraddress_control => "REGISTERED",
+			lpm_outdata => "UNREGISTERED",
+			lpm_rdaddress_control => "UNREGISTERED",
+			lpm_file => "UNUSED",
+			lpm_hint => "UNUSED"
+		)
+		port map (
+			rdclock => clk,
+			rdclken => '1',
+			rdaddress => addr, 
+			q => d_out,
+			rden => '1',
+
+			wrclock => clk,
+			wrclken => '1',
+			wraddress => addr,
+			data => d_in,
+			wren => we
+		);
+end altera;
+
+
+
+
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+library exemplar;
+use exemplar.exemplar_1164.all;
+
+library lpm;
+use lpm.all;
+
+entity dpram is
+	generic (
+		data_width : positive;
+		addr_width : positive
+	);
+	port (
+		clk : in std_logic;
+
+		r_d_out : out std_logic_vector(data_width-1 downto 0);
+		r_rd : in std_logic;
+		r_clk_en : in std_logic;
+		r_addr : in std_logic_vector(addr_width-1 downto 0);
+
+		w_d_in : in std_logic_vector(data_width-1 downto 0);
+		w_wr : in std_logic;
+		w_clk_en : in std_logic;
+		w_addr : in std_logic_vector(addr_width-1 downto 0)
+	);
+end dpram;
+
+architecture altera of dpram is
+	component lpm_ram_dp
+		generic (
+			lpm_width: positive;
+			lpm_widthad: positive;
+			lpm_numwords: natural := 0;
+			lpm_type: string := "lpm_ram_dp";
+			lpm_indata: string := "REGISTERED";
+			lpm_outdata: string := "UNREGISTERED";
+			lpm_rdaddress_control: string := "REGISTERED";
+			lpm_wraddress_control: string := "REGISTERED";
+			lpm_file: string := "UNUSED";
+			lpm_hint: string := "UNUSED"
+		);
+		port (
+			rdaddress, wraddress: in std_logic_vector(lpm_widthad-1 downto 0);
+			rdclock, wrclock: in std_logic := '0';
+			rden, rdclken, wrclken: in std_logic := '1';
+			wren: in std_logic; 
+			data: in std_logic_vector(lpm_width-1 downto 0);
+			q: out std_logic_vector(lpm_width-1 downto 0)
+		);
+	end component;
+begin
+	altera_ram: lpm_ram_dp
+		generic map (
+			lpm_width => data_width,
+			lpm_widthad => addr_width,
+			lpm_numwords => 2 ** addr_width,
+			lpm_type => "lpm_ram_dp",
+			lpm_indata => "REGISTERED",
+			lpm_wraddress_control => "REGISTERED",
+			lpm_outdata => "UNREGISTERED",
+			lpm_rdaddress_control => "UNREGISTERED",
+			lpm_file => "UNUSED",
+			lpm_hint => "UNUSED"
+		)
+		port map (
+			rdclock => clk,
+			rdclken => r_clk_en,
+			rdaddress => r_addr, 
+			q => r_d_out,
+			rden => r_rd,
+
+			wrclock => clk,
+			wrclken => w_clk_en,
+			wraddress => w_addr,
+			data => w_d_in,
+			wren => w_wr
+		);
+end altera;
 
 library IEEE;
 use IEEE.std_logic_1164.all;
