@@ -16,41 +16,42 @@
 
 library IEEE;
 use IEEE.std_logic_1164.all;
+use IEEE.STD_LOGIC_UNSIGNED.all;
 
 library wb_tk;
 use wb_tk.technology.all;
 
 entity wb_async_slave is
 	generic (
-		width: positive := 16;
-		addr_width: positive := 20
+		dat_width: positive := 16;
+		adr_width: positive := 20
 	);
 	port (
 		clk_i: in std_logic;
 		rst_i: in std_logic := '0';
-		
+
 		-- interface for wait-state generator state-machine
 		wait_state: in std_logic_vector (3 downto 0);
 
 		-- interface to wishbone master device
-		adr_i: in std_logic_vector (addr_width-1 downto 0);
-		sel_i: in std_logic_vector ((addr_width/8)-1 downto 0);
-		dat_i: in std_logic_vector (width-1 downto 0);
-		dat_o: out std_logic_vector (width-1 downto 0);
-		dat_oi: in std_logic_vector (width-1 downto 0) := (others => '-');
+		adr_i: in std_logic_vector (adr_width-1 downto 0);
+		sel_i: in std_logic_vector ((adr_width/8)-1 downto 0);
+		dat_i: in std_logic_vector (dat_width-1 downto 0);
+		dat_o: out std_logic_vector (dat_width-1 downto 0);
+		dat_oi: in std_logic_vector (dat_width-1 downto 0) := (others => '-');
 		we_i: in std_logic;
 		stb_i: in std_logic;
 		ack_o: out std_logic := '0';
 		ack_oi: in std_logic := '-';
-	
+
 		-- interface to async slave
-		a_data: inout std_logic_vector (width-1 downto 0) := (others => 'Z');
-		a_addr: out std_logic_vector (addr_width-1 downto 0) := (others => 'U');
+		a_data: inout std_logic_vector (dat_width-1 downto 0) := (others => 'Z');
+		a_addr: out std_logic_vector (adr_width-1 downto 0) := (others => 'U');
 		a_rdn: out std_logic := '1';
 		a_wrn: out std_logic := '1';
 		a_cen: out std_logic := '1';
 		-- byte-enable signals
-		a_byen: out std_logic_vector ((width/8)-1 downto 0)
+		a_byen: out std_logic_vector ((dat_width/8)-1 downto 0)
 	);
 end wb_async_slave;
 
@@ -65,11 +66,11 @@ architecture wb_async_slave of wb_async_slave is
 begin
 	ack_o <= (stb_i and i_ack) or (not stb_i and ack_oi);
 	dat_o_gen: for i in dat_o'RANGE generate
-	    dat_o(i) <= (stb_i and a_data(i)) or (not stb_i and dat_oi(i));
+		dat_o(i) <= (stb_i and a_data(i)) or (not stb_i and dat_oi(i));
 	end generate;
-	
+
 	-- For 0WS operation i_ack is an async signal otherwise it's a sync one.
-	i_ack_gen: process is
+	i_ack_gen: process
 	begin
 		wait on sm_ack, stb_i, wait_state, state;
 		if (wait_state = "0000") then
@@ -81,9 +82,9 @@ begin
 			i_ack <= sm_ack;
 		end if;
 	end process;
-	
+
 	-- SRAM signal-handler process
-	sram_signals: process is
+	sram_signals: process
 	begin
 		wait on state,we_i,a_data,adr_i,rst_i, stb_i, sel_i, dat_i;
 		if (rst_i = '1') then
@@ -92,7 +93,7 @@ begin
 			a_cen <= '1';
 			a_addr <= (others => '-');
 			a_data <= (others => 'Z');
-    		a_byen <= (others => '1');
+			a_byen <= (others => '1');
 		else
 			case (state) is
 				when sm_deact =>
@@ -101,15 +102,15 @@ begin
 					a_cen <= '1';
 					a_addr <= (others => '-');
 					a_data <= (others => 'Z');
-            		a_byen <= (others => '1');
+					a_byen <= (others => '1');
 				when others =>
 					a_addr <= adr_i;
 					a_rdn <= not (not we_i and stb_i);
 					a_wrn <= not (we_i and stb_i);
 					a_cen <= not stb_i;
-            		a_byen <= not sel_i;
-					if (we_i = '1') then 
-						a_data <= dat_i; 
+					a_byen <= not sel_i;
+					if (we_i = '1') then
+						a_data <= dat_i;
 					else
 						a_data <= (others => 'Z');
 					end if;
@@ -118,7 +119,7 @@ begin
 	end process;
 
 	-- Aysnc access state-machine.
-	async_sm: process is
+	async_sm: process
 --		variable cnt: std_logic_vector(3 downto 0) := "0000";
 --		variable state: states := init;
 	begin
@@ -154,12 +155,12 @@ begin
 						sm_ack <= '0';
 						cnt <= "0000";
 					else
-						if (add_one(cnt) = wait_state) then
+						if (cnt+"1" = wait_state) then
 							sm_ack <= '1';
 						else
 							sm_ack <= '0';
 						end if;
-						cnt <= add_one(cnt);
+						cnt <=cnt+"1";
 					end if;
 				when sm_deact =>
 					if (stb_i = '1') then

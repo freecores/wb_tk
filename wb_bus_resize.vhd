@@ -16,17 +16,15 @@
 
 library IEEE;
 use IEEE.std_logic_1164.all;
-
 library wb_tk;
 use wb_tk.technology.all;
-use wb_tk.all;
 
 entity wb_bus_resize is
 	generic (
-		m_bus_width: positive := 32; -- master bus width
-		m_addr_width: positive := 19; -- master bus width
-		s_bus_width: positive := 16; -- slave bus width
-		s_addr_width: positive := 20; -- master bus width
+		m_dat_width: positive := 32; -- master bus width
+		m_adr_width: positive := 19; -- master bus width
+		s_dat_width: positive := 16; -- slave bus width
+		s_adr_width: positive := 20; -- master bus width
 		little_endien: boolean := true -- if set to false, big endien
 	);
 	port (
@@ -34,11 +32,11 @@ entity wb_bus_resize is
 --		rst_i: in std_logic := '0';
 
 		-- Master bus interface
-		m_adr_i: in std_logic_vector (m_addr_width-1 downto 0);
-		m_sel_i: in std_logic_vector ((m_bus_width/8)-1 downto 0) := (others => '1');
-		m_dat_i: in std_logic_vector (m_bus_width-1 downto 0);
-		m_dat_oi: in std_logic_vector (m_bus_width-1 downto 0) := (others => '-');
-		m_dat_o: out std_logic_vector (m_bus_width-1 downto 0);
+		m_adr_i: in std_logic_vector (m_adr_width-1 downto 0);
+		m_sel_i: in std_logic_vector ((m_dat_width/8)-1 downto 0) := (others => '1');
+		m_dat_i: in std_logic_vector (m_dat_width-1 downto 0);
+		m_dat_oi: in std_logic_vector (m_dat_width-1 downto 0) := (others => '-');
+		m_dat_o: out std_logic_vector (m_dat_width-1 downto 0);
 		m_cyc_i: in std_logic;
 		m_ack_o: out std_logic;
 		m_ack_oi: in std_logic := '-';
@@ -50,10 +48,10 @@ entity wb_bus_resize is
 		m_stb_i: in std_logic;
 
 		-- Slave bus interface
-		s_adr_o: out std_logic_vector (s_addr_width-1 downto 0);
-		s_sel_o: out std_logic_vector ((s_bus_width/8)-1 downto 0);
-		s_dat_i: in std_logic_vector (s_bus_width-1 downto 0);
-		s_dat_o: out std_logic_vector (s_bus_width-1 downto 0);
+		s_adr_o: out std_logic_vector (s_adr_width-1 downto 0);
+		s_sel_o: out std_logic_vector ((s_dat_width/8)-1 downto 0);
+		s_dat_i: in std_logic_vector (s_dat_width-1 downto 0);
+		s_dat_o: out std_logic_vector (s_dat_width-1 downto 0);
 		s_cyc_o: out std_logic;
 		s_ack_i: in std_logic;
 		s_err_i: in std_logic := '-';
@@ -64,24 +62,24 @@ entity wb_bus_resize is
 end wb_bus_resize;
 
 architecture wb_bus_resize of wb_bus_resize is
-	component wb_bus_upsize is
+	component wb_bus_upsize
 		generic (
-			m_bus_width: positive := 8; -- master bus width
-			m_addr_width: positive := 21; -- master bus width
-			s_bus_width: positive := 16; -- slave bus width
-			s_addr_width: positive := 20; -- master bus width
+			m_dat_width: positive := 8; -- master bus width
+			m_adr_width: positive := 21; -- master bus width
+			s_dat_width: positive := 16; -- slave bus width
+			s_adr_width: positive := 20; -- master bus width
 			little_endien: boolean := true -- if set to false, big endien
 		);
 		port (
 	--		clk_i: in std_logic;
 	--		rst_i: in std_logic := '0';
-	
+
 			-- Master bus interface
-			m_adr_i: in std_logic_vector (m_addr_width-1 downto 0);
-			m_sel_i: in std_logic_vector ((m_bus_width/8)-1 downto 0) := (others => '1');
-			m_dat_i: in std_logic_vector (m_bus_width-1 downto 0);
-			m_dat_oi: in std_logic_vector (m_bus_width-1 downto 0) := (others => '-');
-			m_dat_o: out std_logic_vector (m_bus_width-1 downto 0);
+			m_adr_i: in std_logic_vector (m_adr_width-1 downto 0);
+			m_sel_i: in std_logic_vector ((m_dat_width/8)-1 downto 0) := (others => '1');
+			m_dat_i: in std_logic_vector (m_dat_width-1 downto 0);
+			m_dat_oi: in std_logic_vector (m_dat_width-1 downto 0) := (others => '-');
+			m_dat_o: out std_logic_vector (m_dat_width-1 downto 0);
 			m_cyc_i: in std_logic;
 			m_ack_o: out std_logic;
 			m_ack_oi: in std_logic := '-';
@@ -91,12 +89,12 @@ architecture wb_bus_resize of wb_bus_resize is
 			m_rty_oi: in std_logic := '-';
 			m_we_i: in std_logic;
 			m_stb_i: in std_logic;
-	
+
 			-- Slave bus interface
-			s_adr_o: out std_logic_vector (s_addr_width-1 downto 0);
-			s_sel_o: out std_logic_vector ((s_bus_width/8)-1 downto 0);
-			s_dat_i: in std_logic_vector (s_bus_width-1 downto 0);
-			s_dat_o: out std_logic_vector (s_bus_width-1 downto 0);
+			s_adr_o: out std_logic_vector (s_adr_width-1 downto 0);
+			s_sel_o: out std_logic_vector ((s_dat_width/8)-1 downto 0);
+			s_dat_i: in std_logic_vector (s_dat_width-1 downto 0);
+			s_dat_o: out std_logic_vector (s_dat_width-1 downto 0);
 			s_cyc_o: out std_logic;
 			s_ack_i: in std_logic;
 			s_err_i: in std_logic := '-';
@@ -106,24 +104,24 @@ architecture wb_bus_resize of wb_bus_resize is
 		);
 	end component;
 
-	component wb_bus_dnsize is
+	component wb_bus_dnsize
 		generic (
-			m_bus_width: positive := 32; -- master bus width
-			m_addr_width: positive := 20; -- master bus width
-			s_bus_width: positive := 16; -- slave bus width
-			s_addr_width: positive := 21; -- master bus width
+			m_dat_width: positive := 32; -- master bus width
+			m_adr_width: positive := 20; -- master bus width
+			s_dat_width: positive := 16; -- slave bus width
+			s_adr_width: positive := 21; -- master bus width
 			little_endien: boolean := true -- if set to false, big endien
 		);
 		port (
 	--		clk_i: in std_logic;
 	--		rst_i: in std_logic := '0';
-	
+
 			-- Master bus interface
-			m_adr_i: in std_logic_vector (m_addr_width-1 downto 0);
-			m_sel_i: in std_logic_vector ((m_bus_width/8)-1 downto 0) := (others => '1');
-			m_dat_i: in std_logic_vector (m_bus_width-1 downto 0);
-			m_dat_oi: in std_logic_vector (m_bus_width-1 downto 0) := (others => '-');
-			m_dat_o: out std_logic_vector (m_bus_width-1 downto 0);
+			m_adr_i: in std_logic_vector (m_adr_width-1 downto 0);
+			m_sel_i: in std_logic_vector ((m_dat_width/8)-1 downto 0) := (others => '1');
+			m_dat_i: in std_logic_vector (m_dat_width-1 downto 0);
+			m_dat_oi: in std_logic_vector (m_dat_width-1 downto 0) := (others => '-');
+			m_dat_o: out std_logic_vector (m_dat_width-1 downto 0);
 			m_cyc_i: in std_logic;
 			m_ack_o: out std_logic;
 			m_ack_oi: in std_logic := '-';
@@ -133,12 +131,12 @@ architecture wb_bus_resize of wb_bus_resize is
 			m_rty_oi: in std_logic := '-';
 			m_we_i: in std_logic;
 			m_stb_i: in std_logic;
-	
+
 			-- Slave bus interface
-			s_adr_o: out std_logic_vector (s_addr_width-1 downto 0);
-			s_sel_o: out std_logic_vector ((s_bus_width/8)-1 downto 0);
-			s_dat_i: in std_logic_vector (s_bus_width-1 downto 0);
-			s_dat_o: out std_logic_vector (s_bus_width-1 downto 0);
+			s_adr_o: out std_logic_vector (s_adr_width-1 downto 0);
+			s_sel_o: out std_logic_vector ((s_dat_width/8)-1 downto 0);
+			s_dat_i: in std_logic_vector (s_dat_width-1 downto 0);
+			s_dat_o: out std_logic_vector (s_dat_width-1 downto 0);
 			s_cyc_o: out std_logic;
 			s_ack_i: in std_logic;
 			s_err_i: in std_logic := '-';
@@ -148,13 +146,13 @@ architecture wb_bus_resize of wb_bus_resize is
 		);
 	end component;
 begin
-	dn_sel: if (m_bus_width > s_bus_width) generate
+	dn_sel: if (m_dat_width > s_dat_width) generate
 		dnsizer: wb_bus_dnsize
 			generic map (
-				m_bus_width => m_bus_width,
-				m_addr_width => m_addr_width,
-				s_bus_width => s_bus_width,
-				s_addr_width => s_addr_width,
+				m_dat_width => m_dat_width,
+				m_adr_width => m_adr_width,
+				s_dat_width => s_dat_width,
+				s_adr_width => s_adr_width,
 				little_endien => little_endien
 			)
 			port map
@@ -184,13 +182,13 @@ begin
 				s_stb_o => s_stb_o
 			);
 	end generate;
-	up_sel: if (m_bus_width < s_bus_width) generate
+	up_sel: if (m_dat_width < s_dat_width) generate
 		upsizer: wb_bus_upsize
 			generic map (
-				m_bus_width => m_bus_width,
-				m_addr_width => m_addr_width,
-				s_bus_width => s_bus_width,
-				s_addr_width => s_addr_width,
+				m_dat_width => m_dat_width,
+				m_adr_width => m_adr_width,
+				s_dat_width => s_dat_width,
+				s_adr_width => s_adr_width,
 				little_endien => little_endien
 			)
 			port map
@@ -220,7 +218,7 @@ begin
 				s_stb_o => s_stb_o
 			);
 	end generate;
-	eq_sel: if (m_bus_width = s_bus_width) generate
+	eq_sel: if (m_dat_width = s_dat_width) generate
 		dat_o_for: for i in m_dat_o'RANGE generate
 			dat_o_gen: m_dat_o(i) <= (s_dat_i(i) and m_stb_i and not m_we_i) or (m_dat_oi(i) and not (m_stb_i and not m_we_i));
 		end generate;
@@ -235,15 +233,4 @@ begin
 		s_stb_o <= m_stb_i;
 	end generate;
 end wb_bus_resize;
-
---configuration c_wb_bus_resize of wb_bus_resize is
---    for wb_bus_resize
---        for dnsizer: wb_bus_dnsize
---            use entity wb_bus_dnsize(wb_bus_dnsize);
---        end for;
---        for upsizer: wb_bus_upsize
---            use entity wb_bus_upsize(wb_bus_upsize);
---        end for;
---    end for;
---end c_wb_bus_resize;
 

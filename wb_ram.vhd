@@ -22,17 +22,17 @@ use wb_tk.technology.all;
 
 entity wb_ram is
 	generic (
-		data_width: positive := 8;
-		addr_width: positive := 10
+		dat_width: positive := 8;
+		adr_width: positive := 10
 	);
 	port (
-    	clk_i: in std_logic;
+		clk_i: in std_logic;
 --		rst_i: in std_logic := '0';
-		adr_i: in std_logic_vector (addr_width-1 downto 0);
---		sel_i: in std_logic_vector ((bus_width/8)-1 downto 0) := (others => '1');
-		dat_i: in std_logic_vector (data_width-1 downto 0);
-		dat_oi: in std_logic_vector (data_width-1 downto 0) := (others => '-');
-		dat_o: out std_logic_vector (data_width-1 downto 0);
+		adr_i: in std_logic_vector (adr_width-1 downto 0);
+--		sel_i: in std_logic_vector ((dat_width/8)-1 downto 0) := (others => '1');
+		dat_i: in std_logic_vector (dat_width-1 downto 0);
+		dat_oi: in std_logic_vector (dat_width-1 downto 0) := (others => '-');
+		dat_o: out std_logic_vector (dat_width-1 downto 0);
 		cyc_i: in std_logic;
 		ack_o: out std_logic;
 		ack_oi: in std_logic := '-';
@@ -46,40 +46,32 @@ entity wb_ram is
 end wb_ram;
 
 architecture wb_ram of wb_ram is
-	component ram 
-		generic (
-			data_width : positive;
-			addr_width : positive
-		);
-		port (
-			clk : in std_logic;
-			we : in std_logic;
-			addr : in std_logic_vector(addr_width-1 downto 0);
-			d_in : in std_logic_vector(data_width-1 downto 0);
-			d_out : out std_logic_vector(data_width-1 downto 0)
-		);
-	end component;
-	
-	signal mem_we: std_logic;
-	signal mem_dat_o: std_logic_vector(data_width-1 downto 0);
+	signal mem_stb: std_logic;
+	signal mem_dat_o: std_logic_vector(dat_width-1 downto 0);
+	signal mem_ack: std_logic;
 begin
-    mem_we <= we_i and stb_i and cyc_i;
-    tech_ram: ram
-        generic map (
-            data_width => data_width,
-            addr_width => addr_width
-        )
-        port map (
-            clk => clk_i,
-            we => mem_we,
-            addr => adr_i,
-            d_in => dat_i,
-            d_out => mem_dat_o
-        );
-        
-    dat_o_gen: for i in dat_o'RANGE generate
-        dat_o(i) <= (mem_dat_o(i) and stb_i and cyc_i and not we_i) or (dat_oi(i) and not (stb_i and cyc_i and not we_i));
-    end generate;
-    ack_o <= ('1' and stb_i and cyc_i) or (ack_oi and not (stb_i and cyc_i));
+	mem_stb <= stb_i and cyc_i;
+	tech_ram: spmem
+		generic map (
+			default_out => 'X',
+			default_content => '0',
+			adr_width   => adr_width,
+			dat_width   => dat_width,
+			async_read  => true
+		)
+		port map (
+			stb_i    => mem_stb,
+			clk_i    => clk_i,
+--			reset    => '0',
+			adr_i    => adr_i,
+			dat_i    => dat_i,
+			dat_o    => mem_dat_o,
+			we_i     => we_i
+		);
+
+	dat_o_gen: for i in dat_o'RANGE generate
+		dat_o(i) <= (mem_dat_o(i) and stb_i and cyc_i and not we_i) or (dat_oi(i) and not (stb_i and cyc_i and not we_i));
+	end generate;
+	ack_o <= (mem_ack and stb_i and cyc_i) or (ack_oi and not (stb_i and cyc_i));
 end wb_ram;
 
