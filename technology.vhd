@@ -17,9 +17,10 @@ package technology is
 --	procedure inc(data : inout std_logic_vector);
     function "+"(op_l, op_r: std_logic_vector) return std_logic_vector;
 	function log2(inp : integer) return integer;
+	function bus_resize2adr_bits(in_bus : integer; out_bus: integer) return integer;
 	function size2bits(inp : integer) return integer;
 	function max(a : integer; b: integer) return integer;
-	function min(a : integer; b: integer) return integer;
+	function min2(a : integer; b: integer) return integer;
 	function equ(a : std_logic_vector; b : integer) return boolean;
 
 	component d_ff is
@@ -90,7 +91,7 @@ package body technology is
 	    return b;
 	end;
 	
-	function min(a : integer; b: integer) return integer is
+	function min2(a : integer; b: integer) return integer is
 	begin
 	    if (a < b) then return a; end if;
 	    return b;
@@ -116,6 +117,13 @@ package body technology is
 		if (inp < 32768) then return 14; end if;
 		if (inp < 65538) then return 15; end if;
 		return 16;
+	end;
+
+	function bus_resize2adr_bits(in_bus : integer; out_bus: integer) return integer is
+	begin
+	    if (in_bus = out_bus) then return 0; end if;
+	    if (in_bus < out_bus) then return -log2(out_bus/in_bus); end if;
+	    if (in_bus > out_bus) then return log2(in_bus/out_bus); end if;
 	end;
 
 	function size2bits(inp : integer) return integer is
@@ -281,7 +289,7 @@ begin
 			lpm_hint => "UNUSED"
 		)
 		port map (
-			rdclock => clk,
+--			rdclock => clk,
 			rdclken => '1',
 			rdaddress => addr, 
 			q => d_out,
@@ -366,7 +374,7 @@ begin
 			lpm_hint => "UNUSED"
 		)
 		port map (
-			rdclock => clk,
+--			rdclock => clk,
 			rdclken => r_clk_en,
 			rdaddress => r_addr, 
 			q => r_d_out,

@@ -13,6 +13,8 @@
 
 library IEEE;
 use IEEE.std_logic_1164.all;
+library synopsys;
+use synopsys.std_logic_arith.all;
 
 package wb_test is
 	procedure wr_chk_val(
@@ -61,6 +63,56 @@ package wb_test is
 		signal stb_i: out STD_LOGIC;
 		signal ack_o: in STD_LOGIC;
 		constant addr: in STD_LOGIC_VECTOR;
+		constant data: in STD_LOGIC_VECTOR
+	);
+
+
+	procedure wr_chk_val(
+		signal clk_i: in STD_LOGIC;
+		signal adr_i: out STD_LOGIC_VECTOR;
+		signal dat_o: in STD_LOGIC_VECTOR;
+		signal dat_i: out STD_LOGIC_VECTOR;
+		signal we_i: out STD_LOGIC;
+		signal cyc_i: out std_logic;
+		signal stb_i: out STD_LOGIC;
+		signal ack_o: in STD_LOGIC;
+		constant addr: in integer;
+		constant data: in STD_LOGIC_VECTOR
+	);
+	procedure wr_val(
+		signal clk_i: in STD_LOGIC;
+		signal adr_i: out STD_LOGIC_VECTOR;
+		signal dat_o: in STD_LOGIC_VECTOR;
+		signal dat_i: out STD_LOGIC_VECTOR;
+		signal we_i: out STD_LOGIC;
+		signal cyc_i: out std_logic;
+		signal stb_i: out STD_LOGIC;
+		signal ack_o: in STD_LOGIC;
+		constant addr: in integer;
+		constant data: in STD_LOGIC_VECTOR
+	);
+	procedure rd_val(
+		signal clk_i: in STD_LOGIC;
+		signal adr_i: out STD_LOGIC_VECTOR;
+		signal dat_o: in STD_LOGIC_VECTOR;
+		signal dat_i: out STD_LOGIC_VECTOR;
+		signal we_i: out STD_LOGIC;
+		signal cyc_i: out std_logic;
+		signal stb_i: out STD_LOGIC;
+		signal ack_o: in STD_LOGIC;
+		constant addr: in integer;
+		variable data: out STD_LOGIC_VECTOR
+	);
+	procedure chk_val(
+		signal clk_i: in STD_LOGIC;
+		signal adr_i: out STD_LOGIC_VECTOR;
+		signal dat_o: in STD_LOGIC_VECTOR;
+		signal dat_i: out STD_LOGIC_VECTOR;
+		signal we_i: out STD_LOGIC;
+		signal cyc_i: out std_logic;
+		signal stb_i: out STD_LOGIC;
+		signal ack_o: in STD_LOGIC;
+		constant addr: in integer;
 		constant data: in STD_LOGIC_VECTOR
 	);
 end wb_test;
@@ -219,4 +271,75 @@ package body wb_test is
     	stb_i <= '0';
     	cyc_i <= '0';
     end procedure;
+    
+	procedure wr_chk_val(
+		signal clk_i: in STD_LOGIC;
+		signal adr_i: out STD_LOGIC_VECTOR;
+		signal dat_o: in STD_LOGIC_VECTOR;
+		signal dat_i: out STD_LOGIC_VECTOR;
+		signal we_i: out STD_LOGIC;
+		signal cyc_i: out std_logic;
+		signal stb_i: out STD_LOGIC;
+		signal ack_o: in STD_LOGIC;
+		constant addr: in integer;
+		constant data: in STD_LOGIC_VECTOR
+	) is
+	    variable sadr: std_logic_vector(adr_i'RANGE);
+	begin
+	    sadr := CONV_STD_LOGIC_VECTOR(addr,adr_i'HIGH+1);
+	    wr_chk_val(clk_i,adr_i,dat_o,dat_i,we_i,cyc_i,stb_i,ack_o,sadr,data);
+	end procedure;
+	procedure wr_val(
+		signal clk_i: in STD_LOGIC;
+		signal adr_i: out STD_LOGIC_VECTOR;
+		signal dat_o: in STD_LOGIC_VECTOR;
+		signal dat_i: out STD_LOGIC_VECTOR;
+		signal we_i: out STD_LOGIC;
+		signal cyc_i: out std_logic;
+		signal stb_i: out STD_LOGIC;
+		signal ack_o: in STD_LOGIC;
+		constant addr: in integer;
+		constant data: in STD_LOGIC_VECTOR
+	) is
+	    variable sadr: std_logic_vector(adr_i'RANGE);
+	begin
+	    sadr := CONV_STD_LOGIC_VECTOR(addr,adr_i'HIGH+1);
+	    wr_val(clk_i,adr_i,dat_o,dat_i,we_i,cyc_i,stb_i,ack_o,sadr,data);
+	end procedure;
+	procedure rd_val(
+		signal clk_i: in STD_LOGIC;
+		signal adr_i: out STD_LOGIC_VECTOR;
+		signal dat_o: in STD_LOGIC_VECTOR;
+		signal dat_i: out STD_LOGIC_VECTOR;
+		signal we_i: out STD_LOGIC;
+		signal cyc_i: out std_logic;
+		signal stb_i: out STD_LOGIC;
+		signal ack_o: in STD_LOGIC;
+		constant addr: in integer;
+		variable data: out STD_LOGIC_VECTOR
+	) is
+	    variable sadr: std_logic_vector(adr_i'RANGE);
+	begin
+	    sadr := CONV_STD_LOGIC_VECTOR(addr,adr_i'HIGH+1);
+	    rd_val(clk_i,adr_i,dat_o,dat_i,we_i,cyc_i,stb_i,ack_o,sadr,data);
+	end procedure;
+	procedure chk_val(
+		signal clk_i: in STD_LOGIC;
+		signal adr_i: out STD_LOGIC_VECTOR;
+		signal dat_o: in STD_LOGIC_VECTOR;
+		signal dat_i: out STD_LOGIC_VECTOR;
+		signal we_i: out STD_LOGIC;
+		signal cyc_i: out std_logic;
+		signal stb_i: out STD_LOGIC;
+		signal ack_o: in STD_LOGIC;
+		constant addr: in integer;
+		constant data: in STD_LOGIC_VECTOR
+	) is
+	    variable sadr: std_logic_vector(adr_i'RANGE);
+	begin
+	    sadr := CONV_STD_LOGIC_VECTOR(addr,adr_i'HIGH+1);
+	    chk_val(clk_i,adr_i,dat_o,dat_i,we_i,cyc_i,stb_i,ack_o,sadr,data);
+	end procedure;
+    
 end package body wb_test;
+
